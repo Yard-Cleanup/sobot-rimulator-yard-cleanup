@@ -110,6 +110,10 @@ class MapManager:
             self.current_obstacles = pickle.load(file)
             self.current_goal = pickle.load(file)
 
+    def load_map_values(self, current_obstacles, current_goal):
+        self.current_obstacles = current_obstacles
+        self.current_goal = current_goal
+
     def apply_to_world(self, world):
         # add the current obstacles
         for obstacle in self.current_obstacles:

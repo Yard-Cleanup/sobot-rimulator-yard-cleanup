@@ -12,12 +12,15 @@ from models.world import World
 from views.world_view import WorldView
 from sim_exceptions.collision_exception import CollisionException
 from sim_exceptions.goal_reached_exception import GoalReachedException
+from models.rectangle_obstacle import RectangleObstacle
+from models.pose import Pose
+
 
 REFRESH_RATE = 20.0  # hertz
 
-
+## Change simulator to take in current obstables and goal, figure out what data type obstables and goal are and create a new class that will intializte a simulator variable wi
 class Simulator:
-    def __init__(self):
+    def __init__(self, current_obstacles=None, current_goal=None):
         # create the GUI
         self.viewer = gui.viewer.Viewer(self)
 
@@ -29,13 +32,13 @@ class Simulator:
 
         # Gtk simulation event source - for simulation control
         self.sim_event_source = GLib.idle_add(
-            self.initialize_sim, True
+            self.initialize_sim, False, current_obstacles, current_goal
         )  # we use this opportunity to initialize the sim
 
         # start Gtk
         Gtk.main()
 
-    def initialize_sim(self, random=False):
+    def initialize_sim(self, random=False, current_obstacles=None, current_goal=None):
         # reset the viewer
         self.viewer.control_panel_state_init()
 
@@ -47,7 +50,10 @@ class Simulator:
         self.world.add_robot(robot)
 
         # generate a random environment
-        if random:
+        if current_obstacles != None and current_goal != None:
+            self.map_manager.load_map_values(current_obstacles,current_goal)
+            self.map_manager.apply_to_world(self.world)
+        elif random:
             self.map_manager.random_map(self.world)
         else:
             self.map_manager.apply_to_world(self.world)
@@ -88,6 +94,10 @@ class Simulator:
         self.map_manager.load_map(filename)
         self.reset_sim()
 
+    # def load_map_values(self, current_obstacles, current_goal):
+    #     self.map_manager.load_map(current_obstacles, current_goal)
+    #     self.reset_sim()
+
     def random_map(self):
         self.pause_sim()
         self.initialize_sim(random=True)
@@ -115,4 +125,12 @@ class Simulator:
 
 
 # RUN THE SIM:
-Simulator()
+current_obstacles = [
+    RectangleObstacle(1, 0.5, Pose(1, 1, 0)),
+    RectangleObstacle(0.25, 0.25, Pose(0, 1, 90)),
+    RectangleObstacle(0.125, 0.5, Pose(2, 1.125, 0)),
+
+]
+
+current_goal = [1,2]
+Simulator(current_obstacles, current_goal)
